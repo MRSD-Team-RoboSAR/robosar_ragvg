@@ -21,7 +21,7 @@ public:
 
 
 public:
-    Exploration():
+    Exploration()
     {
         
         IsGraphUpdated = false;

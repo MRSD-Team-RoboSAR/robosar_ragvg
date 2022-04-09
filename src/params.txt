@@ -1,0 +1,29 @@
+[MapModel-sim]
+resolution = 0.1
+
+[RAGVG-sim]
+obstacle_dilate_size = 2
+wall_remove_small_region_size = 2
+free_dilate_size = 3
+image_blur_size = 8
+image_blur_threshold = 70
+delete_jut_uthreshold = 3
+delete_jut_vthreshold = 3
+
+[MCDM-sim]
+w1 = 0.2
+w2 = 0.4
+w3 = 0.1
+w4 = 0.3
+w12 = 0.7
+w13 = 0.4
+w14 = 0.6
+w23 = 0.45
+w24 = 0.6
+w34 = 0.25
+w123 = 0.8
+w124 = 0.95
+w134 = 0.7
+w234 = 0.8
+w1234 = 1.0
+

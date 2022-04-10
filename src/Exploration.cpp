@@ -67,7 +67,7 @@ public:
 
 int main(int argc, char** argv)
 {
-    Mat map = cv::imread("map.png"); // your OGM
+    Mat map = cv::imread("/home/jsonglaptop/catkin_ws/src/RAGVG/maps/scott_hall.png"); // your OGM
     Exploration exp;
     exp.MapMat = map.clone();
     exp.buildGraph(exp.MapMat);

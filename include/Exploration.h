@@ -234,7 +234,7 @@ public:
 
     AutoRun()
     {
-        string root = "/home/ubuntu/my_exploration_sim/";  // To be changed
+        string root = "/home/jsonglaptop/catkin_ws/src/RAGVG/src/";  // To be changed
         map = Mat::zeros(Size(2,2), CV_8UC1);
         for(int i = 1; i <=7; i++)
             element_vector.push_back(Mat(i, i, CV_8U, Scalar(1)));

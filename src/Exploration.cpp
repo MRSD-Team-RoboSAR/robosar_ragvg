@@ -78,7 +78,7 @@ public:
 
 int main(int argc, char** argv)
 {
-    Mat map = cv::imread("/home/jsonglaptop/catkin_ws/src/RAGVG/maps/scott_hall.png", IMREAD_GRAYSCALE); // your OGM
+    Mat map = cv::imread("/home/jsonglaptop/catkin_ws/src/RAGVG/maps/scott_hall_edit.png", IMREAD_GRAYSCALE); // your OGM
     cout << "Map is " << map.cols << " x " << map.rows << endl;
     cv::imshow("Provided map", map);
     waitKey(0);

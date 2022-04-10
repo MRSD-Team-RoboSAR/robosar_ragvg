@@ -1,7 +1,9 @@
 #include <Exploration.h>
 
-
 using namespace std;
+
+string out_dir = "/home/jsonglaptop/catkin_ws/src/RAGVG/output/";
+
 class Exploration
 {
 public:
@@ -46,6 +48,7 @@ public:
         cout << "Generating SFAM" << endl;
         Mat freeRegionMat_tmp = AR.freeRegionExtraction(MapMat_copy);
         cout << "Finished generating SFAM" << endl;
+        cv::imwrite(out_dir+"2_SFAM.png", freeRegionMat_tmp);
         cv::imshow("SFAM", freeRegionMat_tmp);
         waitKey(0);
 
@@ -53,6 +56,7 @@ public:
         cout << "Generating skeleton" << endl;
         Mat skeleton_tmp = AR.skeletonExtraction(freeRegionMat_tmp);
         cout << "Finished generating skeleton" << endl;
+        cv::imwrite(out_dir+"3_RAGVD.png", skeleton_tmp);
         cv::imshow("RAGVD", skeleton_tmp);
         waitKey(0);
 
@@ -60,6 +64,7 @@ public:
         cout << "Generating RAGVG" << endl;
         Mat outputRAGVG = AR.RAGVGExtraction(skeleton_tmp, ends_of_skeleton, nodes_of_skeleton, end_to_node_chain, node_to_node_chain, ConnectionMat);
         cout << "Finished generating RAGVG" << endl;
+        cv::imwrite(out_dir+"4_RAGVG.png", outputRAGVG);
         cv::imshow("RAGVG", outputRAGVG);
         waitKey(0);
 
@@ -80,6 +85,7 @@ int main(int argc, char** argv)
 {
     Mat map = cv::imread("/home/jsonglaptop/catkin_ws/src/RAGVG/maps/scott_hall_edit.png", IMREAD_GRAYSCALE); // your OGM
     cout << "Map is " << map.cols << " x " << map.rows << endl;
+    cv::imwrite(out_dir+"1_OGM.png", map);
     cv::imshow("Provided map", map);
     waitKey(0);
     Exploration exp;

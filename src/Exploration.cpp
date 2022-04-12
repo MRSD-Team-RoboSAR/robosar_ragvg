@@ -1,8 +1,10 @@
 #include <Exploration.h>
-
+// geometry_msgs::PointStamped output;
+std::vector<geometry_msgs::PointStamped> output_nodes;
 using namespace std;
-
-string out_dir = "/home/jsonglaptop/catkin_ws/src/RAGVG/output/";
+#include <visualization_msgs/Marker.h>
+#include "robosar_messages/auto_taskgen_getwaypts.h"
+string out_dir = "/home/naren/catkin_ws/src/robosar_ragvg/output/";
 
 class Exploration
 {
@@ -15,11 +17,12 @@ public:
     vector<MyNode> nodes_of_skeleton;
     vector<EndToNodeChain *> end_to_node_chain;
     vector<NodeToNodeChain *> node_to_node_chain;
+    // bool pubWaypoints(robosar_messages::auto_taskgen_getwaypts::Request  &req, robosar_messages::auto_taskgen_getwaypts::Response &res);
     Mat ConnectionMat;
     
     bool IsGraphUpdated, IsMapUpdated;
 
-
+    // ros::init(argc, argv, "nodes_publisher");
 
 public:
     Exploration()
@@ -38,7 +41,7 @@ public:
 
     void buildGraph(Mat MapMat)
     {
-        
+        geometry_msgs::PointStamped p;
         // *********************
         // **** build graph ****
         // *********************
@@ -56,6 +59,7 @@ public:
         cout << "Generating skeleton" << endl;
         Mat skeleton_tmp = AR.skeletonExtraction(freeRegionMat_tmp);
         cout << "Finished generating skeleton" << endl;
+        
         cv::imwrite(out_dir+"3_RAGVD.png", skeleton_tmp);
         cv::imshow("RAGVD", skeleton_tmp);
         waitKey(0);
@@ -63,6 +67,24 @@ public:
         // extract RAGVG
         cout << "Generating RAGVG" << endl;
         Mat outputRAGVG = AR.RAGVGExtraction(skeleton_tmp, ends_of_skeleton, nodes_of_skeleton, end_to_node_chain, node_to_node_chain, ConnectionMat);
+        std::cout<<nodes_of_skeleton.size()<<"\n";
+        for (auto i: nodes_of_skeleton)
+        {
+            for (auto j: i.points)
+            {
+                // std::cout<<"Point number"<<k<<"::X::"<<j.x<<"y::"<<j.y<<"\n";
+                p.point.x = j.x;
+                p.point.y = j.y;
+                output_nodes.push_back(p);
+            }
+        }
+
+        for (auto o:output_nodes)
+        {
+            int i=1;
+            std::cout<<"OUTPUT NODE NUMBER::"<<i<<":::"<<o.point.x<<":::"<<o.point.y<<"\n";
+            i++;
+        }
         cout << "Finished generating RAGVG" << endl;
         cv::imwrite(out_dir+"4_RAGVG.png", outputRAGVG);
         cv::imshow("RAGVG", outputRAGVG);
@@ -73,8 +95,16 @@ public:
         SkeletonMat.release();
         SkeletonMat = skeleton_tmp.clone();
         
-        
     }
+
+    // bool pubWaypoints(robosar_messages::auto_taskgen_getwaypts::Request  &req, robosar_messages::auto_taskgen_getwaypts::Response &res)
+    // {
+    //     std::vector<geometry_msgs::PointStamped> output_values;
+    //     for (auto i:output_nodes)
+    //         output_values.push_back(i);
+    //     res.waypoints = output_values;
+    //     return true;
+    // }
 };
 
 
@@ -83,7 +113,10 @@ public:
 
 int main(int argc, char** argv)
 {
-    Mat map = cv::imread("/home/jsonglaptop/catkin_ws/src/RAGVG/maps/scott_hall_edit.png", IMREAD_GRAYSCALE); // your OGM
+    ros::init(argc, argv, "gen");
+    ros::NodeHandle n;
+    ros::Publisher gen_pub = n.advertise<geometry_msgs::PointStamped>("generated_points", 10);
+    Mat map = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_hall_plus_edit.png", IMREAD_GRAYSCALE); // your OGM
     cout << "Map is " << map.cols << " x " << map.rows << endl;
     cv::imwrite(out_dir+"1_OGM.png", map);
     cv::imshow("Provided map", map);
@@ -91,5 +124,13 @@ int main(int argc, char** argv)
     Exploration exp;
     exp.MapMat = map.clone();
     exp.buildGraph(exp.MapMat);
+    geometry_msgs::PointStamped p;
+    for (auto o:output_nodes)
+    {    
+        p.point.x = o.point.x;
+        p.point.y = o.point.y;
+        gen_pub.publish(p);
+
+    }
     return 0;
 }

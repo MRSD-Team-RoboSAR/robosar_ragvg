@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(RAGVG)
+project(robosar_ragvg)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  robosar_messages
 )
 
 ## System dependencies are found with CMake's conventions
@@ -70,11 +71,12 @@ message(Eigen: ${EIGEN3_INCLUDE_DIR})
 #   Action2.action
 # )
 
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+# Generate added messages and services with any dependencies listed here
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  robosar_messages
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##

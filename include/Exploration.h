@@ -7,7 +7,10 @@
 #include <fstream>
 #include <map>
 #include <string>
-#include <sstream> 
+#include <sstream>
+#include <geometry_msgs/PointStamped.h> 
+#include <ros/ros.h>
+#include "robosar_messages/auto_taskgen_getwaypts.h"
 using namespace cv;
 using namespace std;
 
@@ -234,7 +237,7 @@ public:
 
     AutoRun()
     {
-        string root = "/home/jsonglaptop/catkin_ws/src/RAGVG/src/";  // To be changed
+        string root = "/home/naren/catkin_ws/src/robosar_ragvg/src/";  // To be changed
         map = Mat::zeros(Size(2,2), CV_8UC1);
         for(int i = 1; i <=7; i++)
             element_vector.push_back(Mat(i, i, CV_8U, Scalar(1)));
@@ -1079,7 +1082,7 @@ public:
 
         ends_of_skeleton = getEnds(skeleton);    // fixed param from experience
         nodes_of_skeleton = getNodes(skeleton);  // fixed param from experience
-
+     
         findChains(skeleton, nodes_of_skeleton, ends_of_skeleton, end_to_node_chain, node_to_node_chain);
         connection_mat = getConnectionMat(node_to_node_chain, nodes_of_skeleton);
 

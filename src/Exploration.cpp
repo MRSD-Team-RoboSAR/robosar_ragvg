@@ -70,23 +70,21 @@ public:
         cout << "Generating RAGVG" << endl;
         Mat outputRAGVG = AR.RAGVGExtraction(skeleton_tmp, ends_of_skeleton, nodes_of_skeleton, end_to_node_chain, node_to_node_chain, ConnectionMat);
         std::cout<<nodes_of_skeleton.size()<<"\n";
-        for (auto i: nodes_of_skeleton)
+        for (auto j: ends_of_skeleton)
         {
-            for (auto j: i.points)
-            {
+            
                 // std::cout<<"Point number"<<k<<"::X::"<<j.x<<"y::"<<j.y<<"\n";
                 p.point.x = (int)j.x;
                 p.point.y = (int)j.y;
                 output_nodes.push_back(p);
-            }
         }
 
-        for (auto o:output_nodes)
-        {
-            int i=1;
-            std::cout<<"OUTPUT NODE NUMBER::"<<i<<":::"<<o.point.x<<":::"<<o.point.y<<"\n";
-            i++;
-        }
+        // for (auto o:output_nodes)
+        // {
+        //     int i=1;
+        //     std::cout<<"OUTPUT NODE NUMBER::"<<i<<":::"<<o.point.x<<":::"<<o.point.y<<"\n";
+        //     i++;
+        // }
         cout << "Finished generating RAGVG" << endl;
         cv::imwrite(out_dir+"4_RAGVG.png", outputRAGVG);
         cv::imshow("RAGVG", outputRAGVG);
@@ -105,52 +103,32 @@ public:
 bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messages::taskgen_getwaypts::Response &res)
 {
     Mat map_gen = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_hall_PR4.png", IMREAD_GRAYSCALE); // your OGM
-    // int rows = req.map.info.height;
-    // int cols = req.map.info.width;
-    // float resolution= req.map.info.resolution;
-    // float origin_x = req.map.info.origin.position.x;
-    // float origin_y = req.map.info.origin.position.y;
-    // std::vector<signed char> input = req.map.data;
-    // int it = 0;
-    // int array[rows][cols];
+    int rows = req.map.info.height;
+    int cols = req.map.info.width;
+    float resolution= req.map.info.resolution;
+    float origin_x = req.map.info.origin.position.x;
+    float origin_y = req.map.info.origin.position.y;
+    std::vector<signed char> input = req.map.data;
+    int it = 0;
+    int array[rows][cols];
     // Mat map_gen = cv::Mat::zeros(cv::Size(rows,cols), CV_8UC1);
-    // for (int i=0;i<rows;i++)
-    // {
-    //     for (int j=0;j<cols;j++)
-    //     {
-    //         array[i][j] = (unsigned char)input[it];
-    //         it++;
-    //     }
-    // }
+
+    // cout<<"finished populating input \n";
     // for(int i = 0; i < map_gen.rows; i++)
     // {
-    //     int* Mi = map_gen.ptr<int>(i);
+    //     unsigned char* row_ptr = map_gen.ptr<unsigned char>(i);
+    //     cout<<"got row ptr \n";
     //     for(int j = 0; j < map_gen.cols; j++)
-    //         map_gen[j] = array[i][j];
-    // }
-    // cout<<"resolution::"<<resolution<<":::origin x::"<<origin_x<<"::origin_y::"<<origin_y<<"\n";
-    // for (int i=0;i<rows;i++)
-    // {
-    //     for (int j=0;j<cols;j++)
     //     {
-    //         cout<<array[i][j]<<"  " ;
-    //     }
-    //     cout<<"\n";
-    // }
-    // Mat map_gen(Size(rows,cols), CV_8UC1, array);
-    // Mat map_gen = cv::Mat::zeros(cv::Size(rows,cols), CV_8UC1);
-    // Mat map_gen(Size(rows, cols), CV_8UC1, array);
-    // // Mat map_gen = input.reshape(rows,cols);
-    // for (int i=0;i<rows;i++)
-    // {
-    //     for(int j=0;j<cols;j++)
-    //     {
-    //         Mat[]
+    //         cout<<"before accessing pixel value \n";
+    //         row_ptr[j] = (unsigned char)input[it];
+    //         cout<<"row value::"<<i<<":::column value::"<<j<<"::::after accessing pixel value:::"<<row_ptr[j]<<":::array value::"<<(unsigned char)input[it]<<"\n";
+    //         it++;
     //     }
     // }
     cout << "Map is " << map_gen.cols << " x " << map_gen.rows << "\n";
     // cout<"first value:::"<<map[0][0];
-    cv::imwrite(out_dir+"1_OGM.png", map_gen);
+    cv::imwrite(out_dir+"updated_1_OGM.png", map_gen);
     cv::imshow("Provided map", map_gen);
     waitKey(0);
     Exploration exp;
@@ -166,10 +144,11 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
         p.point.y = o.point.y;
         int px = (int)o.point.x;
         int py = (int)o.point.y;
-        if ((px == 310 && py == 143) || (px == 182&& py==114) || (px==231 && py == 47))
-        {
-            continue;
-        }
+        // if ((px == 310 && py == 143) || (px == 182&& py==114) || (px==231 && py == 47))
+        // {
+        //     continue;
+        // }
+
         waypts[i] = px;
         i+=1;
         waypts[i] = py;

@@ -113,13 +113,20 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     // std::vector<signed char> input = req.map.data;
     // int it = 0;
     // int array[rows][cols];
+    // Mat map_gen = cv::Mat::zeros(cv::Size(rows,cols), CV_8UC1);
     // for (int i=0;i<rows;i++)
     // {
     //     for (int j=0;j<cols;j++)
     //     {
-    //         array[i][j] = (unsigned char)(input[it]/resolution);
+    //         array[i][j] = (unsigned char)input[it];
     //         it++;
     //     }
+    // }
+    // for(int i = 0; i < map_gen.rows; i++)
+    // {
+    //     int* Mi = map_gen.ptr<int>(i);
+    //     for(int j = 0; j < map_gen.cols; j++)
+    //         map_gen[j] = array[i][j];
     // }
     // cout<<"resolution::"<<resolution<<":::origin x::"<<origin_x<<"::origin_y::"<<origin_y<<"\n";
     // for (int i=0;i<rows;i++)
@@ -132,7 +139,7 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     // }
     // Mat map_gen(Size(rows,cols), CV_8UC1, array);
     // Mat map_gen = cv::Mat::zeros(cv::Size(rows,cols), CV_8UC1);
-    // // Mat map_gen(Size(rows, cols), CV_8UC1, input, Mat::AUTO_STEP);
+    // Mat map_gen(Size(rows, cols), CV_8UC1, array);
     // // Mat map_gen = input.reshape(rows,cols);
     // for (int i=0;i<rows;i++)
     // {
@@ -141,7 +148,7 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     //         Mat[]
     //     }
     // }
-    // cout << "Map is " << map_gen.cols << " x " << map_gen.rows << "\n";
+    cout << "Map is " << map_gen.cols << " x " << map_gen.rows << "\n";
     // cout<"first value:::"<<map[0][0];
     cv::imwrite(out_dir+"1_OGM.png", map_gen);
     cv::imshow("Provided map", map_gen);
@@ -157,9 +164,15 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     {    
         p.point.x = o.point.x;
         p.point.y = o.point.y;
-        waypts[i] = (int)o.point.x;
+        int px = (int)o.point.x;
+        int py = (int)o.point.y;
+        if ((px == 310 && py == 143) || (px == 182&& py==114) || (px==231 && py == 47))
+        {
+            continue;
+        }
+        waypts[i] = px;
         i+=1;
-        waypts[i] = (int)o.point.y;
+        waypts[i] = py;
         i+=1;
         // gen_pub.publish(p);
     }
@@ -169,7 +182,9 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     return true;
 }
 
-
+// 310:143
+// 182:114
+// 231:47
 
 // int main(int argc, char** argv)
 // {

@@ -3,9 +3,11 @@
 std::vector<geometry_msgs::PointStamped> output_nodes;
 using namespace std;
 #include <visualization_msgs/Marker.h>
-#include "robosar_messages/auto_taskgen_getwaypts.h"
-string out_dir = "/home/naren/catkin_ws/src/robosar_ragvg/output/";
+#include "robosar_messages/taskgen_getwaypts.h"
 
+#include "std_msgs/String.h"
+#include "std_msgs/Int64.h"
+string out_dir = "/home/naren/catkin_ws/src/robosar_ragvg/output/";
 class Exploration
 {
 public:
@@ -73,8 +75,8 @@ public:
             for (auto j: i.points)
             {
                 // std::cout<<"Point number"<<k<<"::X::"<<j.x<<"y::"<<j.y<<"\n";
-                p.point.x = j.x;
-                p.point.y = j.y;
+                p.point.x = (int)j.x;
+                p.point.y = (int)j.y;
                 output_nodes.push_back(p);
             }
         }
@@ -97,40 +99,129 @@ public:
         
     }
 
-    // bool pubWaypoints(robosar_messages::auto_taskgen_getwaypts::Request  &req, robosar_messages::auto_taskgen_getwaypts::Response &res)
-    // {
-    //     std::vector<geometry_msgs::PointStamped> output_values;
-    //     for (auto i:output_nodes)
-    //         output_values.push_back(i);
-    //     res.waypoints = output_values;
-    //     return true;
-    // }
+   
 };
 
-
-
-
-
-int main(int argc, char** argv)
+bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messages::taskgen_getwaypts::Response &res)
 {
-    ros::init(argc, argv, "gen");
-    ros::NodeHandle n;
-    ros::Publisher gen_pub = n.advertise<geometry_msgs::PointStamped>("generated_points", 10);
-    Mat map = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_hall_plus_edit.png", IMREAD_GRAYSCALE); // your OGM
-    cout << "Map is " << map.cols << " x " << map.rows << endl;
-    cv::imwrite(out_dir+"1_OGM.png", map);
-    cv::imshow("Provided map", map);
+    Mat map_gen = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_hall_PR4.png", IMREAD_GRAYSCALE); // your OGM
+    // int rows = req.map.info.height;
+    // int cols = req.map.info.width;
+    // float resolution= req.map.info.resolution;
+    // float origin_x = req.map.info.origin.position.x;
+    // float origin_y = req.map.info.origin.position.y;
+    // std::vector<signed char> input = req.map.data;
+    // int it = 0;
+    // int array[rows][cols];
+    // for (int i=0;i<rows;i++)
+    // {
+    //     for (int j=0;j<cols;j++)
+    //     {
+    //         array[i][j] = (unsigned char)(input[it]/resolution);
+    //         it++;
+    //     }
+    // }
+    // cout<<"resolution::"<<resolution<<":::origin x::"<<origin_x<<"::origin_y::"<<origin_y<<"\n";
+    // for (int i=0;i<rows;i++)
+    // {
+    //     for (int j=0;j<cols;j++)
+    //     {
+    //         cout<<array[i][j]<<"  " ;
+    //     }
+    //     cout<<"\n";
+    // }
+    // Mat map_gen(Size(rows,cols), CV_8UC1, array);
+    // Mat map_gen = cv::Mat::zeros(cv::Size(rows,cols), CV_8UC1);
+    // // Mat map_gen(Size(rows, cols), CV_8UC1, input, Mat::AUTO_STEP);
+    // // Mat map_gen = input.reshape(rows,cols);
+    // for (int i=0;i<rows;i++)
+    // {
+    //     for(int j=0;j<cols;j++)
+    //     {
+    //         Mat[]
+    //     }
+    // }
+    // cout << "Map is " << map_gen.cols << " x " << map_gen.rows << "\n";
+    // cout<"first value:::"<<map[0][0];
+    cv::imwrite(out_dir+"1_OGM.png", map_gen);
+    cv::imshow("Provided map", map_gen);
     waitKey(0);
     Exploration exp;
-    exp.MapMat = map.clone();
+    exp.MapMat = map_gen.clone();
     exp.buildGraph(exp.MapMat);
     geometry_msgs::PointStamped p;
+    std::vector<long int> waypts;
+    waypts.resize(output_nodes.size());
+    int i = 0;
     for (auto o:output_nodes)
     {    
         p.point.x = o.point.x;
         p.point.y = o.point.y;
-        gen_pub.publish(p);
-
+        waypts[i] = (int)o.point.x;
+        i+=1;
+        waypts[i] = (int)o.point.y;
+        i+=1;
+        // gen_pub.publish(p);
     }
+    res.waypoints = waypts;
+    res.num_pts = waypts.size();
+    res.dims= 2;
+    return true;
+}
+
+
+
+// int main(int argc, char** argv)
+// {
+
+//     ros::init(argc, argv, "gen");
+//     ros::NodeHandle n;
+//     ros::Publisher gen_pub = n.advertise<geometry_msgs::PointStamped>("generated_points", 10);
+//     nh.advertiseService("task_generator", pubtasks);
+//     Mat map = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_hall_PR4.png", IMREAD_GRAYSCALE); // your OGM
+//     cout << "Map is " << map.cols << " x " << map.rows << endl;
+//     cv::imwrite(out_dir+"1_OGM.png", map);
+//     cv::imshow("Provided map", map);
+//     waitKey(0);
+//     Exploration exp;
+//     exp.MapMat = map.clone();
+//     exp.buildGraph(exp.MapMat);
+//     geometry_msgs::PointStamped p;
+//     for (auto o:output_nodes)
+//     {    
+//         p.point.x = o.point.x;
+//         p.point.y = o.point.y;
+//         gen_pub.publish(p);
+//     }
+//     bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messages::taskgen_getwaypts::Response &res)
+//     {
+//         std::vector<std_msgs::Int64> waypoints;
+//         int i = 0;
+//         for (auto o:output_nodes)
+//         {    
+//             p.point.x = o.point.x;
+//             p.point.y = o.point.y;
+//             waypoints.at(i) = o.point.x;
+//             i+=1;
+//             waypoints.at(i) = o.point.y;
+//             i+=1;
+//             // gen_pub.publish(p);
+//         }
+//         res.waypoints = waypoints;
+//         res.num_pts = output_nodes.size();
+//         res.dims= 2;
+//         return true;
+//     }
+//     return 0;
+// }
+
+int main(int argc, char** argv)
+{
+    ros::init(argc,argv, "gen");
+    ros::NodeHandle nh;
+    // Exploration exp;
+    ros::ServiceServer sh;
+    sh = nh.advertiseService("taskgen_getwaypts", pubtasks);
+    ros::spin();
     return 0;
 }

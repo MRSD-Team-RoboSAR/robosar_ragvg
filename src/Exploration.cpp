@@ -74,8 +74,8 @@ public:
         {
             
                 // std::cout<<"Point number"<<k<<"::X::"<<j.x<<"y::"<<j.y<<"\n";
-                p.point.x = (int)j.x;
-                p.point.y = (int)j.y;
+                p.point.x = (int)j.y;
+                p.point.y = (int)j.x;
                 output_nodes.push_back(p);
         }
 
@@ -103,14 +103,14 @@ public:
 bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messages::taskgen_getwaypts::Response &res)
 {
     Mat map_gen = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_hall_PR4.png", IMREAD_GRAYSCALE); // your OGM
-    int rows = req.map.info.height;
-    int cols = req.map.info.width;
-    float resolution= req.map.info.resolution;
-    float origin_x = req.map.info.origin.position.x;
-    float origin_y = req.map.info.origin.position.y;
-    std::vector<signed char> input = req.map.data;
-    int it = 0;
-    int array[rows][cols];
+    // int rows = req.map.info.height;
+    // int cols = req.map.info.width;
+    // float resolution= req.map.info.resolution;
+    // float origin_x = req.map.info.origin.position.x;
+    // float origin_y = req.map.info.origin.position.y;
+    // std::vector<signed char> input = req.map.data;
+    // int it = 0;
+    // int array[rows][cols];
     // Mat map_gen = cv::Mat::zeros(cv::Size(rows,cols), CV_8UC1);
 
     // cout<<"finished populating input \n";

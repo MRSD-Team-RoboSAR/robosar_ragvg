@@ -4,9 +4,14 @@ std::vector<geometry_msgs::PointStamped> output_nodes;
 using namespace std;
 #include <visualization_msgs/Marker.h>
 #include "robosar_messages/taskgen_getwaypts.h"
-
+#include <algorithm> 
 #include "std_msgs/String.h"
 #include "std_msgs/Int64.h"
+#include <nav_msgs/MapMetaData.h>
+#include <nav_msgs/OccupancyGrid.h>
+#include "std_msgs/Header.h"
+#include "nav_msgs/MapMetaData.h"
+#include "quadtree.h"
 string out_dir = "/home/naren/catkin_ws/src/robosar_ragvg/output/";
 class Exploration
 {
@@ -47,6 +52,8 @@ public:
         // *********************
         // **** build graph ****
         // *********************
+        rows = MapMat.rows;
+        cols = MapMat.cols;
         Mat MapMat_copy = MapMat.clone();    // your OGM
         
         // extract free area map, freeRegionMat
@@ -70,12 +77,12 @@ public:
         cout << "Generating RAGVG" << endl;
         Mat outputRAGVG = AR.RAGVGExtraction(skeleton_tmp, ends_of_skeleton, nodes_of_skeleton, end_to_node_chain, node_to_node_chain, ConnectionMat);
         std::cout<<nodes_of_skeleton.size()<<"\n";
-        for (auto j: ends_of_skeleton)
+        for (auto n: nodes_of_skeleton)
         {
             
                 // std::cout<<"Point number"<<k<<"::X::"<<j.x<<"y::"<<j.y<<"\n";
-                p.point.x = (int)j.y;
-                p.point.y = (int)j.x;
+                p.point.x = cols-(int)n.point..y;
+                p.point.y = cols-(int)n.point.x;
                 output_nodes.push_back(p);
         }
 
@@ -103,29 +110,7 @@ public:
 bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messages::taskgen_getwaypts::Response &res)
 {
     Mat map_gen = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_hall_PR4.png", IMREAD_GRAYSCALE); // your OGM
-    // int rows = req.map.info.height;
-    // int cols = req.map.info.width;
-    // float resolution= req.map.info.resolution;
-    // float origin_x = req.map.info.origin.position.x;
-    // float origin_y = req.map.info.origin.position.y;
-    // std::vector<signed char> input = req.map.data;
-    // int it = 0;
-    // int array[rows][cols];
-    // Mat map_gen = cv::Mat::zeros(cv::Size(rows,cols), CV_8UC1);
-
-    // cout<<"finished populating input \n";
-    // for(int i = 0; i < map_gen.rows; i++)
-    // {
-    //     unsigned char* row_ptr = map_gen.ptr<unsigned char>(i);
-    //     cout<<"got row ptr \n";
-    //     for(int j = 0; j < map_gen.cols; j++)
-    //     {
-    //         cout<<"before accessing pixel value \n";
-    //         row_ptr[j] = (unsigned char)input[it];
-    //         cout<<"row value::"<<i<<":::column value::"<<j<<"::::after accessing pixel value:::"<<row_ptr[j]<<":::array value::"<<(unsigned char)input[it]<<"\n";
-    //         it++;
-    //     }
-    // }
+    
     cout << "Map is " << map_gen.cols << " x " << map_gen.rows << "\n";
     // cout<"first value:::"<<map[0][0];
     cv::imwrite(out_dir+"updated_1_OGM.png", map_gen);

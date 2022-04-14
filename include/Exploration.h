@@ -1119,10 +1119,10 @@ public:
             // cout<<"nodes of skeleton:::"<<ends_of_skeleton.at(it).point.x<<" "<<nodes_of_skeleton.at(it).point.y<<"\n";
             circle(result, Point(end.y, end.x), 3, Scalar(255, 0 , 255), 1, 8);
         }
-        for (auto e : ends_of_skeleton)
-        {
-            cout<<"nodes of end of skeleton::"<<e.x<<" "<<e.y<<"\n";
-        }
+        // for (auto e : ends_of_skeleton)
+        // {
+        //     cout<<"nodes of end of skeleton::"<<e.x<<" "<<e.y<<"\n";
+        // }
         //  for (auto n : nodes_of_skeleton)
         // {
         //     // Point node = n;

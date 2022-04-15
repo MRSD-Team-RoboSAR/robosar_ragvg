@@ -13,8 +13,10 @@ using namespace std;
 #include "nav_msgs/MapMetaData.h"
 #include "quadtree.h"
 #include <math.h>
+int sliding_window_width = 50; //n on either side
+
 string out_dir = "/home/naren/catkin_ws/src/robosar_ragvg/output/";
-int proximity_filter =3;
+
 class Exploration
 {
 public:
@@ -85,23 +87,22 @@ public:
             
                 for (auto point:j.points)
                 {
-                    // cout<<point.x<<"\n";
-
-                    p.point.x =  cols-(int)point.y;
-                    p.point.y =  rows - (int)point.x;
+                    // cout<<point.x<<"\n"
+                    p.point.x =  (int)point.y;
+                    p.point.y =   rows - (int)point.x;
                     flag = 0;
-                    cout<<"x:::"<<p.point.x<<"::y::"<<p.point.y<<"\n";
-                    // for (auto i:output_nodes)
-                    // {
-                    //     if (((i.point.x-p.point.x)<=1) &&((i.point.y-p.point.y)<=1))
-                    //     {    
-                    //         // cout<<"flag 1 condition reached \n";
-                    //         // cout<<"values::::output_nodes::"<<i.point.x<<" "<<i.point.y<<"\n";
-                    //         // cout<<"nodes of skeleton::"<<p.point.x<<" "<<p.point.y<<"\n";
-                    //         flag = 1;
-                    //     }
+                    cout<<"row::"<<p.point.x<<"::col::"<<p.point.y<<"\n";
+                    for (auto i:output_nodes)
+                    {
+                        if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
+                        {    
+                            cout<<"flag 1 condition reached \n";
+                            cout<<"values::::output_nodes::"<<i.point.x<<" "<<i.point.y<<"\n";
+                            cout<<"nodes of skeleton::"<<p.point.x<<" "<<p.point.y<<"\n";
+                            flag = 1;
+                        }
                         
-                    // }
+                    }
                     if (flag ==0)
                     {    
                         output_nodes.push_back(p);
@@ -116,23 +117,25 @@ public:
         }
         for (auto e:ends_of_skeleton)
         {
-            p.point.x = e.y;
-            p.point.y = e.x;
+            p.point.x = (int)(e.y);
+            p.point.y = rows - (int)e.x;
             flag = 0;
-            // for (auto i:output_nodes)
-            // {
-            //     if (((i.point.x-p.point.x)<=1) &&((i.point.y-p.point.y)<=1))
-            //     {    
-            //         // cout<<"flag 1 condition reached \n";
-            //         // cout<<"values::::output_nodes::"<<i.point.x<<" "<<i.point.y<<"\n";
-            //         // cout<<"nodes of skeleton::"<<p.point.x<<" "<<p.point.y<<"\n";
-            //         flag = 1;
-            //     }
+            cout<<"row::"<<p.point.x<<"::col::"<<p.point.y<<"\n";
+            for (auto i:output_nodes)
+            {
+                if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
+                {    
+                    // cout<<"flag 1 condition reached \n";
+                    // cout<<"values::::output_nodes::"<<i.point.x<<" "<<i.point.y<<"\n";
+                    // cout<<"nodes of skeleton::"<<p.point.x<<" "<<p.point.y<<"\n";
+                    flag = 1;
+                }
                         
-            // }
+            }
+            
             if (flag ==0)
             {    
-                output_nodes.push_back(p);
+                // output_nodes.push_back(p);
             }
             
             // output_nodes.push_back(p);
@@ -160,51 +163,45 @@ public:
 
 bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messages::taskgen_getwaypts::Response &res)
 {
-    Mat map_gen = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_hall_PR4.png", IMREAD_GRAYSCALE); // your OGM
-    // int cols = req.map.info.height;
-    // int rows = req.map.info.width;
+    Mat map_gen = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_final.png", IMREAD_GRAYSCALE); // your OGM
+    // int rows = req.map.info.height;
+    // int cols = req.map.info.width;
     // float resolution= req.map.info.resolution;
     // float origin_x = req.map.info.origin.position.x;
     // float origin_y = req.map.info.origin.position.y;
-    // int8_t a[rows*cols];
+    // int8_t a[rows*cols]
     cout<<"service triggered!!!!! \n";
-    // Map map(req.map.info.width, req.map.info.height);
-    // Mat map_gen = cv::Mat::zeros(cv::Size(rows,cols), CV_8UC1);
-    // // for (unsigned int x = 0; x < req.map.info.width; x++)
-    // //     for (unsigned int y = 0; y < req.map.info.height; y++)
-    // //     map.Insert(Cell(x,y,req.map.info.width,req.map.data[x+ req.map.info.width * y])); 
-    // for (unsigned int x = 0; x < req.map.info.width; x++)
-    // {
-    //     unsigned int* row_ptr = map_gen.ptr<unsigned int>(x);
-    //     for (unsigned int y = 0; y < req.map.info.height; y++)
-    //     {
-    //         row_ptr[y] = req.map.data[x+ req.map.info.width * y]; 
-    //     }
-    // }
-    // cout<<"first value::"<<map.cells[0].cell.x<<" "<<map.cells[0].cell.y<<"\n";
-    // Mat map_gen = cv::Mat::zeros(cv::Size(rows,cols), CV_8UC1);
-    
+
+    // Mat map_gen = cv::Mat::zeros(cv::Size(cols,rows), CV_8UC1);
+    int it = 0;
+    int temp_val;
+    cout << endl;
     // for(int i = 0; i < map_gen.rows; i++)
     // {
-    //     int64_t* row_ptr = map_gen.ptr<int64_t>(i);
-    //     cout<<"got row ptr \n";
-    //     int value = 0;
+    //     // int8_t* row_ptr = map_gen.ptr<int8_t>(i);
+    //     // cout<<"got row ptr \n";
     //     for(int j = 0; j < map_gen.cols; j++)
     //     {
-    //         // cout<<"before accessing pixel value \n";
-    //         if (input[it] <0)
-    //         {
-    //             value = 255;
+    //         temp_val = req.map.data[it];
+
+    //         if(temp_val < 0){
+    //             temp_val = 0;
+    //         }else if(temp_val > 50){
+    //             temp_val = 0;
+    //         }else if(temp_val <= 50){
+    //             temp_val = 254;
     //         }
-    //         else value = input[it];
-            
-    //         row_ptr[j] = input[it];
+    //         // row_ptr[j] = req.map.data[it];
+    //         map_gen.at<int8_t>(i,j) = temp_val;
+    //         // printf("%hhu, ", map_gen.at<int8_t>(i,j));
+    //         // cout<<map_gen.at<int8_t>(i,j)<<",";
     //         // cout<<"row value::"<<i<<":::column value::"<<j<<"::::after accessing pixel value:::"<<row_ptr[j]<<":::array value::"<<input[it]<<"\n";
     //         it++;
     //     }
     // }
     cout << "Map is " << map_gen.cols << " x " << map_gen.rows << "\n";
     // cout<"first value:::"<<map[0][0];
+    cv::flip(map_gen, map_gen, 0);
     cv::imwrite(out_dir+"updated_1_OGM.png", map_gen);
     cv::imshow("Provided map", map_gen);
     waitKey(0);
@@ -219,19 +216,25 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     {    
         // p.point.x = o.point.x;
         // p.point.y = o.point.y;
+
         int px = (int)o.point.x;
         int py = (int)o.point.y;
+        if (px==496 && py==2)
+        {
+            continue;
+        }
         // if ((px == 310 && py == 143) || (px == 182&& py==114) || (px==231 && py == 47))
         // {
         //     continue;
         // }
-
+        cout<<"["<<px<<","<<py<<"],";
         waypts.push_back(px);
         waypts.push_back(py);
         // gen_pub.publish(p);
     }
     res.waypoints = waypts;
     res.num_pts = waypts.size();
+    cout << "Num waypts = " << res.num_pts << endl;
     res.dims= 2;
     // std::vector<int> iters_to_erase ;
     // int iterator =0;
@@ -281,19 +284,9 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     //     int it = output_nodes.begin
     //     output_nodes.erase(i);
     // }
-    // for (auto o:output_nodes)
-    // {
-    //     // Point node = it->centerPoint();
-    //     // cout<<"nodes of skeleton::"<<nodes_of_skeleton.at(it).point.x<<" "<<nodes_of_skeleton.at(it).point.y<<"\n";
-    //     circle(map_gen, Point(o.point.x, o.point.y), 10, (0,220, 0), 1, 8);
-    // }
-    // cv::imwrite(out_dir+"_output_yellow_filteredr.png", map_gen);
-    // cv::imshow("result", map_gen);
-    // waitKey(0);
-    // res.waypoints = waypts;
-    // res.num_pts = waypts.size();
-    // res.dims= 2;
-    cout<<"no seg fault till here \n";
+    
+ 
+    cout<<"No seg fault till here \n";
     return true;
     
 }

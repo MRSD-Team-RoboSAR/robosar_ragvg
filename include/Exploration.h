@@ -1101,7 +1101,7 @@ public:
         for (vector<EndToNodeChain *>::iterator it = end_to_node_chain.begin(); it != end_to_node_chain.end(); it++)
         {
             EndToNodeChain * chain = (*it);
-            chain->draw(result, result, Scalar(0, 255 , 0));
+            // chain->draw(result, result, Scalar(0, 255 , 0));
         }
 
         // draw nodes

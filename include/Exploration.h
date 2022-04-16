@@ -166,7 +166,7 @@ public:
     NodeToNodeChain()
 	{
 	}
-	void draw(Mat src, Mat &dst, Scalar scalar)
+	vector<Point> draw(Mat src, Mat &dst, Scalar scalar)
 	{
 		dst = src.clone();
 		vector<Point> tmp_chain;
@@ -175,8 +175,10 @@ public:
 			Point pt = *it;
 			tmp_chain.push_back(Point(pt.y, pt.x));
 		}
+        
 		polylines(dst, tmp_chain, false, scalar, 1);
-	}
+        return tmp_chain;
+    }
 	int size()
 	{
 		return Chain.size();
@@ -233,7 +235,6 @@ public:
     int image_blur_threshold;
     int delete_jut_uthreshold;
     int delete_jut_vthreshold;
-
 
     AutoRun()
     {
@@ -1056,11 +1057,10 @@ public:
     }
 
     // a sum up function to extract RAGVG
-    Mat RAGVGExtraction(Mat skeleton, vector<Point> &ends_of_skeleton, vector<MyNode> &nodes_of_skeleton, vector<EndToNodeChain *> &end_to_node_chain, vector<NodeToNodeChain *> &node_to_node_chain, Mat &connection_mat)
+    Mat RAGVGExtraction(Mat skeleton, vector<Point> &ends_of_skeleton, vector<MyNode> &nodes_of_skeleton, vector<EndToNodeChain *> &end_to_node_chain, vector<NodeToNodeChain *> &node_to_node_chain, Mat &connection_mat, std::vector<geometry_msgs::PointStamped> &output_nodes, int rows, int sliding_window_width, int interp_width)
     {
         nodes_of_skeleton.clear();
         ends_of_skeleton.clear();
-
         if(!end_to_node_chain.empty())
         {
             for(int i = 0; i<end_to_node_chain.size(); i++)
@@ -1091,11 +1091,16 @@ public:
         cvtColor(map, result, COLOR_GRAY2RGB);
 
         // draw node_to_node chain
-        for (vector<NodeToNodeChain *>::iterator it = node_to_node_chain.begin(); it != node_to_node_chain.end(); it++)
-        {
-            NodeToNodeChain * chain = (*it);
-            chain->draw(result, result, Scalar(255, 0 , 0));
-        }
+        // for (vector<NodeToNodeChain *>::iterator it = node_to_node_chain.begin(); it != node_to_node_chain.end(); it++)
+        // {
+        //     NodeToNodeChain * chain = (*it);
+        //     for (auto k:chain->m_Node1.points)
+        //     {
+        //         cout<<"k popints x::"<<k.x<<"point y::"<<k.y;
+        //     }
+
+        //     chain->draw(result, result, Scalar(255, 0 , 0));
+        // }
 
         // draw end_to_node chain
         for (vector<EndToNodeChain *>::iterator it = end_to_node_chain.begin(); it != end_to_node_chain.end(); it++)
@@ -1128,6 +1133,47 @@ public:
         //     // Point node = n;
         //     cout<<"nodes of end of skeleton::"<<n.x<<" "<<n.y<<"\n";
         // }
+        int count = 0;
+        geometry_msgs::PointStamped p;
+        std::cout<<"rows value::"<<rows<<"\n";
+        for (vector<NodeToNodeChain *>::iterator it = node_to_node_chain.begin(); it != node_to_node_chain.end(); it++)
+        {
+            NodeToNodeChain * chain = (*it);
+                
+            std::cout<<"inside node to node draw chain \n";
+            for (auto k:chain->m_Node1.points)
+            {
+                std::cout<<"inside for loop \n";
+                cout<<"k popints x::"<<k.x<<"point y::"<<k.y<<"\n";
+                p.point.x = (int)k.y;
+                p.point.y = rows - (int)k.x;
+                int flag = 0;
+                for (auto i:output_nodes)
+                {
+                    if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
+                    {    
+                        // cout<<"flag 1 condition reached \n";
+                        // cout<<"values::::output_nodes::"<<i.point.x<<" "<<i.point.y<<"\n";
+                        // cout<<"nodes of skeleton::"<<p.point.x<<" "<<p.point.y<<"\n";
+                        flag = 1;
+                    }
+                    
+                }
+                if (flag ==0)
+                {    
+                      if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)))
+                    {
+                        cout<<"inside removal condition!!!!! \n";
+                        continue;
+                    }
+                    output_nodes.push_back(p);
+                }
+                    // output_nodes.push_back(p);
+            }
+            chain->draw(result, result, Scalar(255, 0 , 0));
+        }
+        std::cout<<"exited node to node for loop:::"<<output_nodes.size()<<"\n";
+        
 
         return result;
     }

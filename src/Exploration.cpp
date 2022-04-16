@@ -13,7 +13,8 @@ using namespace std;
 #include "nav_msgs/MapMetaData.h"
 #include "quadtree.h"
 #include <math.h>
-int sliding_window_width = 50; //n on either side
+int sliding_window_width = 20;
+int interp_width = 1; //n on either side
 
 string out_dir = "/home/naren/catkin_ws/src/robosar_ragvg/output/";
 
@@ -79,19 +80,33 @@ public:
 
         // extract RAGVG
         cout << "Generating RAGVG" << endl;
-        Mat outputRAGVG = AR.RAGVGExtraction(skeleton_tmp, ends_of_skeleton, nodes_of_skeleton, end_to_node_chain, node_to_node_chain, ConnectionMat);
-        std::cout<<nodes_of_skeleton.size()<<"\n";
-        int flag = 0;
+        Mat outputRAGVG = AR.RAGVGExtraction(skeleton_tmp, ends_of_skeleton, nodes_of_skeleton, end_to_node_chain, node_to_node_chain, ConnectionMat, output_nodes, rows, sliding_window_width, interp_width);
+        // std::cout<<nodes_of_skeleton.size()<<"\n";
+        
+        std::cout<<"output nodes size:::"<<output_nodes.size();
         for (auto j: nodes_of_skeleton)
         {
-            
+                std::cout<<"inside for loop nodes of skeleton block \n";
+               
                 for (auto point:j.points)
                 {
                     // cout<<point.x<<"\n"
                     p.point.x =  (int)point.y;
                     p.point.y =   rows - (int)point.x;
-                    flag = 0;
-                    cout<<"row::"<<p.point.x<<"::col::"<<p.point.y<<"\n";
+                    // flag = 0;
+                    // // cout<<"row::"<<p.point.x<<"::col::"<<p.point.y<<"\n";
+                    // for (auto i:output_nodes)
+                    // {
+                    //     if ((i.point.x == p.point.x) && (i.point.y == p.point.y))
+                    //     {
+                    //         continue;
+                    //     }
+                    //     else
+                    //     {
+                    //         output_nodes.push_back(p);
+                    //     }
+                    // }
+                    int flag = 0;
                     for (auto i:output_nodes)
                     {
                         if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
@@ -105,6 +120,11 @@ public:
                     }
                     if (flag ==0)
                     {    
+                        if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)))
+                        {
+                            cout<<"inside removal condition!!!!! \n";
+                            continue;
+                        }
                         output_nodes.push_back(p);
                     }
                 }
@@ -115,31 +135,31 @@ public:
                 // // p.point.y = (int)j.points.data.y;
                 // output_nodes.push_back(p);
         }
-        for (auto e:ends_of_skeleton)
-        {
-            p.point.x = (int)(e.y);
-            p.point.y = rows - (int)e.x;
-            flag = 0;
-            cout<<"row::"<<p.point.x<<"::col::"<<p.point.y<<"\n";
-            for (auto i:output_nodes)
-            {
-                if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
-                {    
-                    // cout<<"flag 1 condition reached \n";
-                    // cout<<"values::::output_nodes::"<<i.point.x<<" "<<i.point.y<<"\n";
-                    // cout<<"nodes of skeleton::"<<p.point.x<<" "<<p.point.y<<"\n";
-                    flag = 1;
-                }
+        // for (auto e:ends_of_skeleton)
+        // {
+        //     p.point.x = (int)(e.y);
+        //     p.point.y = rows - (int)e.x;
+        //     flag = 0;
+        //     cout<<"row::"<<p.point.x<<"::col::"<<p.point.y<<"\n";
+        //     for (auto i:output_nodes)
+        //     {
+        //         if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
+        //         {    
+        //             // cout<<"flag 1 condition reached \n";
+        //             // cout<<"values::::output_nodes::"<<i.point.x<<" "<<i.point.y<<"\n";
+        //             // cout<<"nodes of skeleton::"<<p.point.x<<" "<<p.point.y<<"\n";
+        //             flag = 1;
+        //         }
                         
-            }
+        //     }
             
-            if (flag ==0)
-            {    
-                // output_nodes.push_back(p);
-            }
+        //     if (flag ==0)
+        //     {    
+        //         // output_nodes.push_back(p);
+        //     }
             
-            // output_nodes.push_back(p);
-        }
+        //     // output_nodes.push_back(p);
+        // }
         // for (auto o:output_nodes)
         // {
         //     int i=1;

@@ -1,7 +1,4 @@
 #include <Exploration.h>
-// geometry_msgs::PointStamped output;
-std::vector<geometry_msgs::PointStamped> output_nodes;
-using namespace std;
 #include <visualization_msgs/Marker.h>
 #include "robosar_messages/taskgen_getwaypts.h"
 #include <algorithm> 
@@ -13,10 +10,10 @@ using namespace std;
 #include "nav_msgs/MapMetaData.h"
 #include "quadtree.h"
 #include <math.h>
-int sliding_window_width = 20;
-int interp_width = 1; //n on either side
 
-string out_dir = "/home/naren/catkin_ws/src/robosar_ragvg/output/";
+using namespace std;
+
+string out_dir = "/home/rachelzheng/robosar_ws/src/robosar_ragvg/output/";
 
 class Exploration
 {
@@ -34,9 +31,14 @@ public:
     
     bool IsGraphUpdated, IsMapUpdated;
 
+    // geometry_msgs::PointStamped output;
+    vector<geometry_msgs::PointStamped> output_nodes;
+    int sliding_window_width = 20;
+    int interp_width = 1; //n on either side
+
+
     // ros::init(argc, argv, "nodes_publisher");
 
-public:
     Exploration()
     {
         
@@ -51,7 +53,7 @@ public:
 
     }
 
-    void buildGraph(Mat MapMat)
+    void buildGraph()
     {
         geometry_msgs::PointStamped p;
         int cols = MapMat.cols;
@@ -120,6 +122,9 @@ public:
                     }
                     if (flag ==0)
                     {    
+                        if (p.point.x >= 640) {
+                            continue;
+                        }
                         if(((p.point.x == 66) && (p.point.y == 29)) || ((p.point.x == 473) && (p.point.y == 139)))
                         {
                             cout<<"inside removal condition!!!!! \n";
@@ -166,6 +171,7 @@ public:
         //     std::cout<<"OUTPUT NODE NUMBER::"<<i<<":::"<<o.point.x<<":::"<<o.point.y<<"\n";
         //     i++;
         // }
+
         cout << "Finished generating RAGVG" << endl;
         cv::imwrite(out_dir+"4_RAGVG.png", outputRAGVG);
         cv::imshow("RAGVG", outputRAGVG);
@@ -175,7 +181,40 @@ public:
         FreeRegionMat = freeRegionMat_tmp.clone();
         SkeletonMat.release();
         SkeletonMat = skeleton_tmp.clone();
+
+        cout << MapMat.rows << " " << MapMat.cols << endl;
+        refineNodes(4);
         
+    }
+
+    void refineNodes(int r) {
+        vector<geometry_msgs::PointStamped> refined_nodes;
+        for (auto o : output_nodes) {
+            int x = (int)o.point.x;
+            int y = (int)o.point.y;
+            if (!checkCollision(x, y, r)) {
+                refined_nodes.push_back(o);
+            }
+        }
+        output_nodes = refined_nodes;
+    }
+
+    bool checkCollision(int x, int y, int r) {
+        for (int i=-r; i<=r; i++) {
+            for (int j=-r; j<=r; j++) {
+                if (x+i>=0 && x+i<MapMat.cols && y+j>=0 && y+j<MapMat.rows) {
+                    if (y==126) {
+                        cout << x+i << " " << y+j << " ";
+                        printf("%hhu, ", MapMat.at<int8_t>(x+i,y+j));
+                        cout << endl;
+                    }
+                    if (MapMat.at<int8_t>(x+i,y+j)>=254) {  
+                        return true;
+                    }
+                } 
+            }
+        }
+        return false;
     }
 
    
@@ -189,6 +228,7 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     float resolution= req.map.info.resolution;
     float origin_x = req.map.info.origin.position.x;
     float origin_y = req.map.info.origin.position.y;
+
     // int8_t a[rows*cols]
     cout<<"service triggered!!!!! \n";
 
@@ -221,28 +261,28 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     }
     cout << "Map is " << map_gen.cols << " x " << map_gen.rows << "\n";
     // cout<"first value:::"<<map[0][0];
-    // cv::flip(map_gen, map_gen, 0);
+    cv::flip(map_gen, map_gen, 0);
     cv::imwrite(out_dir+"updated_1_OGM.png", map_gen);
     cv::imshow("Provided map", map_gen);
     waitKey(0);
     Exploration exp;
     exp.MapMat = map_gen.clone();
-    exp.buildGraph(exp.MapMat);
+    exp.buildGraph();
     geometry_msgs::PointStamped p;
     std::vector<long int> waypts;
     // waypts.resize(output_nodes.size());
     int i = 0;
-    for (auto o:output_nodes)
+    for (auto o:exp.output_nodes)
     {    
         // p.point.x = o.point.x;
         // p.point.y = o.point.y;
 
         int px = (int)o.point.x;
         int py = (int)o.point.y;
-        if (px==496 && py==2)
-        {
-            continue;
-        }
+        // if (px==496 && py==2)
+        // {
+        //     continue;
+        // }
         // if ((px == 310 && py == 143) || (px == 182&& py==114) || (px==231 && py == 47))
         // {
         //     continue;

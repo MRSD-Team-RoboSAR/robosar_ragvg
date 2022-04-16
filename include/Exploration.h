@@ -238,7 +238,7 @@ public:
 
     AutoRun()
     {
-        string root = "/home/naren/catkin_ws/src/robosar_ragvg/src/";  // To be changed
+        string root = "/home/rachelzheng/robosar_ws/src/robosar_ragvg/src/";  // To be changed
         map = Mat::zeros(Size(2,2), CV_8UC1);
         for(int i = 1; i <=7; i++)
             element_vector.push_back(Mat(i, i, CV_8U, Scalar(1)));
@@ -1057,7 +1057,9 @@ public:
     }
 
     // a sum up function to extract RAGVG
-    Mat RAGVGExtraction(Mat skeleton, vector<Point> &ends_of_skeleton, vector<MyNode> &nodes_of_skeleton, vector<EndToNodeChain *> &end_to_node_chain, vector<NodeToNodeChain *> &node_to_node_chain, Mat &connection_mat, std::vector<geometry_msgs::PointStamped> &output_nodes, int rows, int sliding_window_width, int interp_width)
+    Mat RAGVGExtraction(Mat skeleton, vector<Point> &ends_of_skeleton, vector<MyNode> &nodes_of_skeleton,
+                        vector<EndToNodeChain *> &end_to_node_chain, vector<NodeToNodeChain *> &node_to_node_chain, Mat &connection_mat, 
+                        std::vector<geometry_msgs::PointStamped> &output_nodes, int rows, int sliding_window_width, int interp_width)
     {
         nodes_of_skeleton.clear();
         ends_of_skeleton.clear();
@@ -1161,7 +1163,10 @@ public:
                 }
                 if (flag ==0)
                 {    
-                      if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)))
+                    if (p.point.x >= 640) {
+                        continue;
+                    }
+                    if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)) || ((p.point.x==445) && (p.point.y==143)))
                     {
                         cout<<"inside removal condition!!!!! \n";
                         continue;

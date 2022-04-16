@@ -120,7 +120,7 @@ public:
                     }
                     if (flag ==0)
                     {    
-                        if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)))
+                        if(((p.point.x == 66) && (p.point.y == 29)) || ((p.point.x == 473) && (p.point.y == 139)))
                         {
                             cout<<"inside removal condition!!!!! \n";
                             continue;
@@ -183,45 +183,45 @@ public:
 
 bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messages::taskgen_getwaypts::Response &res)
 {
-    Mat map_gen = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_final.png", IMREAD_GRAYSCALE); // your OGM
-    // int rows = req.map.info.height;
-    // int cols = req.map.info.width;
-    // float resolution= req.map.info.resolution;
-    // float origin_x = req.map.info.origin.position.x;
-    // float origin_y = req.map.info.origin.position.y;
+    // Mat map_gen = cv::imread("/home/naren/catkin_ws/src/robosar_ragvg/maps/scott_final.png", IMREAD_GRAYSCALE); // your OGM
+    int rows = req.map.info.height;
+    int cols = req.map.info.width;
+    float resolution= req.map.info.resolution;
+    float origin_x = req.map.info.origin.position.x;
+    float origin_y = req.map.info.origin.position.y;
     // int8_t a[rows*cols]
     cout<<"service triggered!!!!! \n";
 
-    // Mat map_gen = cv::Mat::zeros(cv::Size(cols,rows), CV_8UC1);
+    Mat map_gen = cv::Mat::zeros(cv::Size(cols,rows), CV_8UC1);
     int it = 0;
     int temp_val;
     cout << endl;
-    // for(int i = 0; i < map_gen.rows; i++)
-    // {
-    //     // int8_t* row_ptr = map_gen.ptr<int8_t>(i);
-    //     // cout<<"got row ptr \n";
-    //     for(int j = 0; j < map_gen.cols; j++)
-    //     {
-    //         temp_val = req.map.data[it];
+    for(int i = 0; i < map_gen.rows; i++)
+    {
+        // int8_t* row_ptr = map_gen.ptr<int8_t>(i);
+        // cout<<"got row ptr \n";
+        for(int j = 0; j < map_gen.cols; j++)
+        {
+            temp_val = req.map.data[it];
 
-    //         if(temp_val < 0){
-    //             temp_val = 0;
-    //         }else if(temp_val > 50){
-    //             temp_val = 0;
-    //         }else if(temp_val <= 50){
-    //             temp_val = 254;
-    //         }
-    //         // row_ptr[j] = req.map.data[it];
-    //         map_gen.at<int8_t>(i,j) = temp_val;
-    //         // printf("%hhu, ", map_gen.at<int8_t>(i,j));
-    //         // cout<<map_gen.at<int8_t>(i,j)<<",";
-    //         // cout<<"row value::"<<i<<":::column value::"<<j<<"::::after accessing pixel value:::"<<row_ptr[j]<<":::array value::"<<input[it]<<"\n";
-    //         it++;
-    //     }
-    // }
+            if(temp_val < 0){
+                temp_val = 0;
+            }else if(temp_val > 50){
+                temp_val = 0;
+            }else if(temp_val <= 50){
+                temp_val = 254;
+            }
+            // row_ptr[j] = req.map.data[it];
+            map_gen.at<int8_t>(i,j) = temp_val;
+            // printf("%hhu, ", map_gen.at<int8_t>(i,j));
+            // cout<<map_gen.at<int8_t>(i,j)<<",";
+            // cout<<"row value::"<<i<<":::column value::"<<j<<"::::after accessing pixel value:::"<<row_ptr[j]<<":::array value::"<<input[it]<<"\n";
+            it++;
+        }
+    }
     cout << "Map is " << map_gen.cols << " x " << map_gen.rows << "\n";
     // cout<"first value:::"<<map[0][0];
-    cv::flip(map_gen, map_gen, 0);
+    // cv::flip(map_gen, map_gen, 0);
     cv::imwrite(out_dir+"updated_1_OGM.png", map_gen);
     cv::imshow("Provided map", map_gen);
     waitKey(0);

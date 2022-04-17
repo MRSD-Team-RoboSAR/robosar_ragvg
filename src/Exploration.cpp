@@ -11,10 +11,9 @@
 #include "quadtree.h"
 #include <math.h>
 
-using namespace std;
-
-string out_dir = "/home/rachelzheng/robosar_ws/src/robosar_ragvg/output/";
-
+string out_dir = "/home/charvi/Documents/robosar/src/robosar_ragvg/output/";
+int prohibited_x = 0;
+int prohibited_y = 0;
 class Exploration
 {
 public:

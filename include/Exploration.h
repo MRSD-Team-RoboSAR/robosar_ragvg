@@ -1110,17 +1110,6 @@ public:
         Mat result = Mat(map.size(), CV_8UC3);
         cvtColor(map, result, COLOR_GRAY2RGB);
 
-        // draw node_to_node chain
-        // for (vector<NodeToNodeChain *>::iterator it = node_to_node_chain.begin(); it != node_to_node_chain.end(); it++)
-        // {
-        //     NodeToNodeChain * chain = (*it);
-        //     for (auto k:chain->m_Node1.points)
-        //     {
-        //         cout<<"k popints x::"<<k.x<<"point y::"<<k.y;
-        //     }
-
-        //     chain->draw(result, result, Scalar(255, 0 , 0));
-        // }
         int count = 0;
        
         for (vector<NodeToNodeChain *>::iterator it = node_to_node_chain.begin(); it != node_to_node_chain.end(); it++)
@@ -1185,15 +1174,10 @@ public:
             // cout<<"nodes of skeleton:::"<<ends_of_skeleton.at(it).point.x<<" "<<nodes_of_skeleton.at(it).point.y<<"\n";
             circle(result, Point(end.y, end.x), 3, Scalar(255, 0 , 255), 1, 8);
         }
-        // for (auto e : ends_of_skeleton)
-        // {
-        //     cout<<"nodes of end of skeleton::"<<e.x<<" "<<e.y<<"\n";
-        // }
-        //  for (auto n : nodes_of_skeleton)
-        // {
-        //     // Point node = n;
-        //     cout<<"nodes of end of skeleton::"<<n.x<<" "<<n.y<<"\n";
-        // }
+        
+        std::cout<<"exited node to node for loop:::"<<output_nodes.size()<<"\n";
+        
+
         return result;
     }
     

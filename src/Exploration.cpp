@@ -125,7 +125,14 @@ void OutputEndsOfSkeleton(vector<Point> ends_of_skeleton, vector<geometry_msgs::
                     }
                     if (flag ==0)
                     {    
-                       
+                        if (p.point.x>=565 || p.point.x<=90) {
+                            continue;
+                        }
+                        // if(((p.point.x == 66) && (p.point.y == 29)) || ((p.point.x == 473) && (p.point.y == 139)))
+                        // {
+                        //     cout<<"inside removal condition!!!!! \n";
+                        //     continue;
+                        // }
                         output_nodes.push_back(p);
                     }
                        
@@ -142,36 +149,29 @@ void OutputEndsOfSkeleton(vector<Point> ends_of_skeleton, vector<geometry_msgs::
         FreeRegionMat = freeRegionMat_tmp.clone();
         SkeletonMat.release();
         SkeletonMat = skeleton_tmp.clone();
-
-        cout << MapMat.rows << " " << MapMat.cols << endl;
         
     }
 
-    void refineNodes(int r) {
-        cout<<"inside refine nodes:"<<MapMat.rows<<MapMat.cols<<"\n";
+    void refineNodes(int r, Mat& MapMat) {
         vector<geometry_msgs::PointStamped> refined_nodes;
         for (auto o : output_nodes) {
             int x = (int)o.point.x;
             int y = (int)o.point.y;
-            if (!checkCollision(x, y, r)) {
+            cout << x << " " << y << endl;
+            printf("%hhu, ", MapMat.at<int8_t>(x,y));
+            cout << endl;
+            if (!checkCollision(x, y, r, MapMat)) {
                 refined_nodes.push_back(o);
             }
         }
         output_nodes = refined_nodes;
     }
 
-    bool checkCollision(int x, int y, int r) {
-        cout<<"inside collision check condition \n";
+    bool checkCollision(int x, int y, int r, Mat& MapMat) {
         for (int i=-r; i<=r; i++) {
             for (int j=-r; j<=r; j++) {
-                if (x+i>=0 && x+i<MapMat.cols && y+j>=0 && y+j<MapMat.rows) {
-                    if (y==126) {
-                        cout << "printing indices::"<<x+i << " " << y+j << " ";
-                        printf("%hhu, ", MapMat.at<int8_t>(x+i,y+j));
-                        cout << endl;
-                    }
-                    if (MapMat.at<int8_t>(x+i,y+j)>=254) { 
-                        cout<<"collision check is true \n" ;
+                if (x+i>=0 && x+i<MapMat.rows && y+j>=0 && y+j<MapMat.cols) {
+                    if (MapMat.at<int8_t>(x+i,y+j)==0) {  
                         return true;
                     }
                 } 
@@ -229,6 +229,7 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     Exploration exp;
     exp.MapMat = map_gen.clone();
     exp.buildGraph();
+    // exp.refineNodes(3, map_gen);
     geometry_msgs::PointStamped p;
     std::vector<long int> waypts;
     int i = 0;

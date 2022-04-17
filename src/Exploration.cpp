@@ -52,7 +52,7 @@ public:
 
     }
 
-    void buildGraph(Mat map_gen)
+    void buildGraph()
     {
         geometry_msgs::PointStamped p;
         int cols = MapMat.cols;
@@ -121,7 +121,7 @@ public:
                     }
                     if (flag ==0)
                     {    
-                        if (p.point.x >= 640) {
+                        if (p.point.x>=565 || p.point.x<=90) {
                             continue;
                         }
                         // if(((p.point.x == 66) && (p.point.y == 29)) || ((p.point.x == 473) && (p.point.y == 139)))
@@ -180,8 +180,6 @@ public:
         FreeRegionMat = freeRegionMat_tmp.clone();
         SkeletonMat.release();
         SkeletonMat = skeleton_tmp.clone();
-
-        // refineNodes(3, map_gen);
         
     }
 
@@ -263,7 +261,8 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     waitKey(0);
     Exploration exp;
     exp.MapMat = map_gen.clone();
-    exp.buildGraph(map_gen);
+    exp.buildGraph();
+    // exp.refineNodes(3, map_gen);
     geometry_msgs::PointStamped p;
     std::vector<long int> waypts;
     // waypts.resize(output_nodes.size());

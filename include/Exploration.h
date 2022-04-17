@@ -1163,7 +1163,7 @@ public:
                 }
                 if (flag ==0)
                 {    
-                    if(p.point.x>=640)
+                    if(p.point.x>=565 || p.point.x<=90)
                     {
                         continue;
                     }

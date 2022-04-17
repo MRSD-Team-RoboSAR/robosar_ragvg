@@ -1166,11 +1166,11 @@ public:
                     if (p.point.x >= 640) {
                         continue;
                     }
-                    if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)) || ((p.point.x==445) && (p.point.y==143)))
-                    {
-                        cout<<"inside removal condition!!!!! \n";
-                        continue;
-                    }
+                    // if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)) || ((p.point.x==445) && (p.point.y==143)))
+                    // {
+                    //     cout<<"inside removal condition!!!!! \n";
+                    //     continue;
+                    // }
                     output_nodes.push_back(p);
                 }
                     // output_nodes.push_back(p);

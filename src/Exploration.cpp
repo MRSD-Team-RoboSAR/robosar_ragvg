@@ -11,10 +11,9 @@
 #include "quadtree.h"
 #include <math.h>
 
-using namespace std;
-
-string out_dir = "/home/rachelzheng/robosar_ws/src/robosar_ragvg/output/";
-
+string out_dir = "/home/charvi/Documents/robosar/src/robosar_ragvg/output/";
+int prohibited_x = 0;
+int prohibited_y = 0;
 class Exploration
 {
 public:
@@ -122,14 +121,16 @@ public:
                     }
                     if (flag ==0)
                     {    
-                        if (p.point.x >= 640) {
-                            continue;
-                        }
-                        if(((p.point.x == 66) && (p.point.y == 29)) || ((p.point.x == 473) && (p.point.y == 139)))
-                        {
-                            cout<<"inside removal condition!!!!! \n";
-                            continue;
-                        }
+                            if(p.point.x>=640)
+                            {
+                                continue;
+                            }
+                            if(((p.point.x == 445) && (p.point.y == 143)) || ((p.point.x == 473) && (p.point.y == 139)))
+                            {
+                                cout<<"inside removal condition!!!!! \n";
+                                continue;
+                            }
+   
                         output_nodes.push_back(p);
                     }
                 }

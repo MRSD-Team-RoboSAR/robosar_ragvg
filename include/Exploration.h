@@ -238,7 +238,7 @@ public:
 
     AutoRun()
     {
-        string root = "/home/rachelzheng/robosar_ws/src/robosar_ragvg/src/";  // To be changed
+        string root = "/home/charvi/Documents/robosar/src/robosar_ragvg/src/";  // To be changed
         map = Mat::zeros(Size(2,2), CV_8UC1);
         for(int i = 1; i <=7; i++)
             element_vector.push_back(Mat(i, i, CV_8U, Scalar(1)));
@@ -1163,10 +1163,11 @@ public:
                 }
                 if (flag ==0)
                 {    
-                    if (p.point.x >= 640) {
+                    if(p.point.x>=640)
+                    {
                         continue;
                     }
-                    if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)) || ((p.point.x==445) && (p.point.y==143)))
+                    if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)) || ((p.point.x == 445) && (p.point.y == 143)))
                     {
                         cout<<"inside removal condition!!!!! \n";
                         continue;

@@ -108,22 +108,27 @@ struct EndToNodeChain
     bool IsReverse;
 	vector<Point> Chain;
     float length;
+    int interp_width = 5;
 public:
 	EndToNodeChain(Point end)
 	{
 		m_End = Point(end);
 	}
-	void draw(Mat src, Mat &dst, Scalar scalar)
+	vector<Point> draw(Mat src, Mat &dst, Scalar scalar, vector<geometry_msgs::PointStamped>& output_nodes, int rows)
 	{
 		dst = src.clone();
 		vector<Point> tmp_chain;
+        int count = 0;
 		for (vector<Point>::iterator it = Chain.begin(); it != Chain.end(); it++)
 		{
 			Point pt = *it;
 			tmp_chain.push_back(Point(pt.y, pt.x));
+            
 		}
+        
 		polylines(dst, tmp_chain, false, scalar, 1);
-	}
+        return tmp_chain;
+    }
     int size()
 	{
 		return Chain.size();
@@ -158,6 +163,7 @@ struct NodeToNodeChain
 	int m_index1, m_index2;
 	vector<Point> Chain;
     float length;
+    int interp_width = 35;
 public:
 	NodeToNodeChain(MyNode node)
 	{
@@ -166,14 +172,24 @@ public:
     NodeToNodeChain()
 	{
 	}
-	vector<Point> draw(Mat src, Mat &dst, Scalar scalar)
+	vector<Point> draw(Mat src, Mat &dst, Scalar scalar, vector<geometry_msgs::PointStamped>& output_nodes, int rows)
 	{
 		dst = src.clone();
 		vector<Point> tmp_chain;
+        int count = 0;
 		for (vector<Point>::iterator it = Chain.begin(); it != Chain.end(); it++)
 		{
 			Point pt = *it;
 			tmp_chain.push_back(Point(pt.y, pt.x));
+            
+            geometry_msgs::PointStamped p;
+            count++;
+            if (count%interp_width==0)
+            {
+                p.point.x =  (int)pt.y;
+                p.point.y =   rows - (int)pt.x;
+                output_nodes.push_back(p);
+            }
 		}
         
 		polylines(dst, tmp_chain, false, scalar, 1);
@@ -238,7 +254,7 @@ public:
 
     AutoRun()
     {
-        string root = "/home/charvi/Documents/robosar/src/robosar_ragvg/src/";  // To be changed
+        string root = "/home/naren/catkin_ws/src/robosar_ragvg/src/";  // To be changed
         map = Mat::zeros(Size(2,2), CV_8UC1);
         for(int i = 1; i <=7; i++)
             element_vector.push_back(Mat(i, i, CV_8U, Scalar(1)));
@@ -1063,6 +1079,8 @@ public:
     {
         nodes_of_skeleton.clear();
         ends_of_skeleton.clear();
+        geometry_msgs::PointStamped p;
+        std::cout<<"rows value::"<<rows<<"\n";
         if(!end_to_node_chain.empty())
         {
             for(int i = 0; i<end_to_node_chain.size(); i++)
@@ -1103,12 +1121,38 @@ public:
 
         //     chain->draw(result, result, Scalar(255, 0 , 0));
         // }
-
+        int count = 0;
+       
+        for (vector<NodeToNodeChain *>::iterator it = node_to_node_chain.begin(); it != node_to_node_chain.end(); it++)
+        {
+            NodeToNodeChain * chain = (*it);
+                
+            for (auto k:chain->m_Node1.points)
+            {
+                p.point.y = rows - (int)k.x;
+                p.point.x = (int)k.y;
+                int flag = 0;
+                for (auto i:output_nodes)
+                {
+                    if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
+                    {    
+                        flag = 1;
+                    }
+                    
+                }
+                if (flag ==0)
+                {    
+                    output_nodes.push_back(p);
+                }
+            }
+            chain->draw(result, result, Scalar(255, 0 , 0), output_nodes, rows);
+        }
+        
         // draw end_to_node chain
         for (vector<EndToNodeChain *>::iterator it = end_to_node_chain.begin(); it != end_to_node_chain.end(); it++)
         {
             EndToNodeChain * chain = (*it);
-            // chain->draw(result, result, Scalar(0, 255 , 0));
+            chain->draw(result, result, Scalar(0, 255 , 0), output_nodes, rows);
         }
 
         // draw nodes
@@ -1116,6 +1160,21 @@ public:
         {
             Point node = it->centerPoint();
             // cout<<"nodes of skeleton::"<<nodes_of_skeleton.at(it).point.x<<" "<<nodes_of_skeleton.at(it).point.y<<"\n";
+                p.point.y = rows - (int)node.x;
+                p.point.x = (int)node.y;
+                int flag = 0;
+                for (auto i:output_nodes)
+                {
+                    if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
+                    {    
+                        flag = 1;
+                    }
+                    
+                }
+                if (flag ==0)
+                {    
+                    output_nodes.push_back(p);
+                }
             circle(result, Point(node.y, node.x), 3, Scalar(0, 255 , 255), 1, 8);
         }
 
@@ -1135,52 +1194,6 @@ public:
         //     // Point node = n;
         //     cout<<"nodes of end of skeleton::"<<n.x<<" "<<n.y<<"\n";
         // }
-        int count = 0;
-        geometry_msgs::PointStamped p;
-        std::cout<<"rows value::"<<rows<<"\n";
-        for (vector<NodeToNodeChain *>::iterator it = node_to_node_chain.begin(); it != node_to_node_chain.end(); it++)
-        {
-            NodeToNodeChain * chain = (*it);
-                
-            std::cout<<"inside node to node draw chain \n";
-            for (auto k:chain->m_Node1.points)
-            {
-                std::cout<<"inside for loop \n";
-                cout<<"k popints x::"<<k.x<<"point y::"<<k.y<<"\n";
-                p.point.x = (int)k.y;
-                p.point.y = rows - (int)k.x;
-                int flag = 0;
-                for (auto i:output_nodes)
-                {
-                    if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
-                    {    
-                        // cout<<"flag 1 condition reached \n";
-                        // cout<<"values::::output_nodes::"<<i.point.x<<" "<<i.point.y<<"\n";
-                        // cout<<"nodes of skeleton::"<<p.point.x<<" "<<p.point.y<<"\n";
-                        flag = 1;
-                    }
-                    
-                }
-                if (flag ==0)
-                {    
-                    if(p.point.x>=640)
-                    {
-                        continue;
-                    }
-                    if(((p.point.x == 66) && (p.point.y == 286)) || ((p.point.x == 473) && (p.point.y == 139)) || ((p.point.x == 445) && (p.point.y == 143)))
-                    {
-                        cout<<"inside removal condition!!!!! \n";
-                        continue;
-                    }
-                    output_nodes.push_back(p);
-                }
-                    // output_nodes.push_back(p);
-            }
-            chain->draw(result, result, Scalar(255, 0 , 0));
-        }
-        std::cout<<"exited node to node for loop:::"<<output_nodes.size()<<"\n";
-        
-
         return result;
     }
     

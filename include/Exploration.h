@@ -11,6 +11,8 @@
 #include <geometry_msgs/PointStamped.h> 
 #include <ros/ros.h>
 #include "robosar_messages/auto_taskgen_getwaypts.h"
+#include <ros/package.h>
+std::string config_path = ros::package::getPath("robosar_ragvg");
 using namespace cv;
 using namespace std;
 
@@ -254,7 +256,7 @@ public:
 
     AutoRun()
     {
-        string root = "/home/naren/catkin_ws/src/robosar_ragvg/src/";  // To be changed
+        string root = config_path+"/src/";  // To be changed
         map = Mat::zeros(Size(2,2), CV_8UC1);
         for(int i = 1; i <=7; i++)
             element_vector.push_back(Mat(i, i, CV_8U, Scalar(1)));

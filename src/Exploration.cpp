@@ -10,10 +10,12 @@
 #include "nav_msgs/MapMetaData.h"
 #include "quadtree.h"
 #include <math.h>
+#include <ros/package.h>
 
+std::string output_dir = ros::package::getPath("robosar_ragvg");
 using namespace std;
 
-string out_dir = "/home/naren/catkin_ws/src/robosar_ragvg/output/";
+string out_dir = output_dir + "/output/";
 
 class Exploration
 {

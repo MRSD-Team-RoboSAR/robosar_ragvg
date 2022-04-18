@@ -224,7 +224,7 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
         }
     }
     cout << "Map is " << map_gen.cols << " x " << map_gen.rows << "\n";
-    // cv::flip(map_gen, map_gen, 0);
+    cv::flip(map_gen, map_gen, 0);
     cv::imwrite(out_dir+"updated_1_OGM.png", map_gen);
     cv::imshow("Provided map", map_gen);
     waitKey(0);

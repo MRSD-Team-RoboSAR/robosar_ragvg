@@ -1162,6 +1162,12 @@ public:
                 }
                 if (flag ==0)
                 {    
+                    // Removing points which are not traversable
+                    if(p.point.x>=565 || p.point.x<=90)
+                        continue;
+                    // Removing office points as office was locked!!s
+                    if(p.point.x>=447 && p.point.y>=127)
+                            continue;
                     output_nodes.push_back(p);
                 }
             circle(result, Point(node.y, node.x), 3, Scalar(0, 255 , 255), 1, 8);

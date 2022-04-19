@@ -15,7 +15,10 @@
 std::string config_path = ros::package::getPath("robosar_ragvg");
 using namespace cv;
 using namespace std;
-
+int mask_x_lb = 90;
+int mask_y_lb = 0;
+int mask_x_ub = 565;
+int mask_y_ub = 0;
 
 double DistanceBetweenPoints(Point pt1, Point pt2)
 {
@@ -190,6 +193,10 @@ public:
             {
                 p.point.x =  (int)pt.y;
                 p.point.y =   rows - (int)pt.x;
+                if(p.point.x <= mask_x_lb || p.point.x >= mask_x_ub)
+                {
+                    continue;
+                }
                 output_nodes.push_back(p);
             }
 		}
@@ -725,9 +732,6 @@ public:
 
                 if (count == thresholdMin-1)
                 {
-                    //points.push_back(Point(j + x_min * 20, i + y_min * 20));
-                    //counts.push_back(count);
-
                     before_ends.push_back(Point(i, j));
                     ends_counts.push_back(count);
 
@@ -1133,6 +1137,10 @@ public:
                 }
                 if (flag ==0)
                 {    
+                    if(p.point.x<=mask_x_lb || p.point.x>=mask_x_ub)
+                    {
+                        continue;
+                    }
                     output_nodes.push_back(p);
                 }
             }
@@ -1165,11 +1173,10 @@ public:
                 if (flag ==0)
                 {    
                     // Removing points which are not traversable
-                    if(p.point.x>=565 || p.point.x<=90)
+                    if(p.point.x <= mask_x_lb || p.point.x >= mask_x_ub)
+                    {
                         continue;
-                    // Removing office points as office was locked!!s
-                    if(p.point.x>=447 && p.point.y>=127)
-                            continue;
+                    }
                     output_nodes.push_back(p);
                 }
             circle(result, Point(node.y, node.x), 3, Scalar(0, 255 , 255), 1, 8);

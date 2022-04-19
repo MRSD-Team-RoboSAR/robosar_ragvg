@@ -2,17 +2,14 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 #include "robosar_messages/taskgen_getwaypts.h"
-#include <algorithm> 
 #include "std_msgs/String.h"
 #include "std_msgs/Int64.h"
 #include <nav_msgs/MapMetaData.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include "std_msgs/Header.h"
 #include "nav_msgs/MapMetaData.h"
-#include "quadtree.h"
 #include <math.h>
 #include <ros/package.h>
-
 
 std::string output_dir = ros::package::getPath("robosar_ragvg");
 using namespace std;
@@ -130,14 +127,10 @@ void OutputEndsOfSkeleton(vector<Point> ends_of_skeleton, vector<geometry_msgs::
                     }
                     if (flag ==0)
                     {    
-                        if (p.point.x>=565 || p.point.x<=90) {
+                        if(p.point.x <= mask_x_lb || p.point.x >= mask_x_ub)
+                        {
                             continue;
                         }
-                        // if(((p.point.x == 66) && (p.point.y == 29)) || ((p.point.x == 473) && (p.point.y == 139)))
-                        // {
-                        //     cout<<"inside removal condition!!!!! \n";
-                        //     continue;
-                        // }
                         output_nodes.push_back(p);
                     }
                        
@@ -190,9 +183,9 @@ void OutputEndsOfSkeleton(vector<Point> ends_of_skeleton, vector<geometry_msgs::
         visualization_msgs::MarkerArray markers;
 
         marker.header.stamp = ros::Time::now();
-        marker.scale.x = 0.6;
-        marker.scale.y = 0.6;
-        marker.scale.z = 0.6;
+        marker.scale.x = 0.3;
+        marker.scale.y = 0.3;
+        marker.scale.z = 0.3;
         marker.color.r = 255;
         marker.color.g = 0;
         marker.color.b = 0;

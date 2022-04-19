@@ -184,17 +184,38 @@ void OutputEndsOfSkeleton(vector<Point> ends_of_skeleton, vector<geometry_msgs::
         }
         return false;
     }
-    void publishRviz(vector<geometry_msgs::PointStamped> output_nodes)
+    void publishRviz(vector<geometry_msgs::PointStamped> output_nodes, float resolution, float origin_x, float origin_y, float origin_z)
     {
         visualization_msgs::Marker marker;
         visualization_msgs::MarkerArray markers;
+
+        marker.header.stamp = ros::Time::now();
+        marker.scale.x = 0.6;
+        marker.scale.y = 0.6;
+        marker.scale.z = 0.6;
+        marker.color.r = 255;
+        marker.color.g = 0;
+        marker.color.b = 0;
+        marker.color.a = 1;
+        marker.header.frame_id = "map";
+        marker.type = 2; // sphere
+        marker.action = visualization_msgs::Marker::ADD; //add
+
         // Publish over topic
         int it=0;
         for (auto o:output_nodes)
         {
-            marker.pose.position.x = o.point.x;
-            marker.pose.position.y = o.point.y;
+            
+            marker.pose.position.x = o.point.x*resolution + origin_x;
+            marker.pose.position.y = o.point.y*resolution + origin_y;
+            marker.pose.position.z = origin_z;
+            marker.pose.orientation.x = 0;
+            marker.pose.orientation.y = 0;
+            marker.pose.orientation.z = 0;
+            marker.pose.orientation.w = 1;
+            marker.id = it;
             markers.markers.push_back(marker);
+            it++;
         }
         rviz_viz_pub.publish(markers);
     }
@@ -209,7 +230,7 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     float resolution= req.map.info.resolution;
     float origin_x = req.map.info.origin.position.x;
     float origin_y = req.map.info.origin.position.y;
-
+    float origin_z = req.map.info.origin.position.z;
     // int8_t a[rows*cols]
     cout<<"service triggered!!!!! \n";
 
@@ -265,12 +286,10 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     res.num_pts = waypts.size();
     cout << "Num waypts = " << res.num_pts << endl;
     res.dims= 2;
-    exp.publishRviz(exp.output_nodes);
+    exp.publishRviz(exp.output_nodes, resolution, origin_x, origin_y, origin_z);
     return true;
     
 }
-
-
 
 int main(int argc, char** argv)
 {

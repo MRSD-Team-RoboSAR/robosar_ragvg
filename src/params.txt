@@ -2,13 +2,13 @@
 resolution = 0.1
 
 [RAGVG-sim]
-obstacle_dilate_size = 2
-wall_remove_small_region_size = 2
+obstacle_dilate_size = 5
+wall_remove_small_region_size = 12
 free_dilate_size = 3
-image_blur_size = 8
+image_blur_size = 15
 image_blur_threshold = 70
-delete_jut_uthreshold = 3
-delete_jut_vthreshold = 3
+delete_jut_uthreshold = 10
+delete_jut_vthreshold = 10
 
 [MCDM-sim]
 w1 = 0.2

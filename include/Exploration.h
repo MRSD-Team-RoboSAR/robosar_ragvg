@@ -11,9 +11,14 @@
 #include <geometry_msgs/PointStamped.h> 
 #include <ros/ros.h>
 #include "robosar_messages/auto_taskgen_getwaypts.h"
+#include <ros/package.h>
+std::string config_path = ros::package::getPath("robosar_ragvg");
 using namespace cv;
 using namespace std;
-
+int mask_x_lb = 90;
+int mask_y_lb = 0;
+int mask_x_ub = 565;
+int mask_y_ub = 0;
 
 double DistanceBetweenPoints(Point pt1, Point pt2)
 {
@@ -108,22 +113,27 @@ struct EndToNodeChain
     bool IsReverse;
 	vector<Point> Chain;
     float length;
+    int interp_width = 5;
 public:
 	EndToNodeChain(Point end)
 	{
 		m_End = Point(end);
 	}
-	void draw(Mat src, Mat &dst, Scalar scalar)
+	vector<Point> draw(Mat src, Mat &dst, Scalar scalar, vector<geometry_msgs::PointStamped>& output_nodes, int rows)
 	{
 		dst = src.clone();
 		vector<Point> tmp_chain;
+        int count = 0;
 		for (vector<Point>::iterator it = Chain.begin(); it != Chain.end(); it++)
 		{
 			Point pt = *it;
 			tmp_chain.push_back(Point(pt.y, pt.x));
+            
 		}
+        
 		polylines(dst, tmp_chain, false, scalar, 1);
-	}
+        return tmp_chain;
+    }
     int size()
 	{
 		return Chain.size();
@@ -158,6 +168,7 @@ struct NodeToNodeChain
 	int m_index1, m_index2;
 	vector<Point> Chain;
     float length;
+    int interp_width = 35;
 public:
 	NodeToNodeChain(MyNode node)
 	{
@@ -166,17 +177,33 @@ public:
     NodeToNodeChain()
 	{
 	}
-	void draw(Mat src, Mat &dst, Scalar scalar)
+	vector<Point> draw(Mat src, Mat &dst, Scalar scalar, vector<geometry_msgs::PointStamped>& output_nodes, int rows)
 	{
 		dst = src.clone();
 		vector<Point> tmp_chain;
+        int count = 0;
 		for (vector<Point>::iterator it = Chain.begin(); it != Chain.end(); it++)
 		{
 			Point pt = *it;
 			tmp_chain.push_back(Point(pt.y, pt.x));
+            
+            geometry_msgs::PointStamped p;
+            count++;
+            if (count%interp_width==0)
+            {
+                p.point.x =  (int)pt.y;
+                p.point.y =   rows - (int)pt.x;
+                if(p.point.x <= mask_x_lb || p.point.x >= mask_x_ub)
+                {
+                    continue;
+                }
+                output_nodes.push_back(p);
+            }
 		}
+        
 		polylines(dst, tmp_chain, false, scalar, 1);
-	}
+        return tmp_chain;
+    }
 	int size()
 	{
 		return Chain.size();
@@ -234,10 +261,9 @@ public:
     int delete_jut_uthreshold;
     int delete_jut_vthreshold;
 
-
     AutoRun()
     {
-        string root = "/home/naren/catkin_ws/src/robosar_ragvg/src/";  // To be changed
+        string root = config_path+"/src/";  // To be changed
         map = Mat::zeros(Size(2,2), CV_8UC1);
         for(int i = 1; i <=7; i++)
             element_vector.push_back(Mat(i, i, CV_8U, Scalar(1)));
@@ -706,9 +732,6 @@ public:
 
                 if (count == thresholdMin-1)
                 {
-                    //points.push_back(Point(j + x_min * 20, i + y_min * 20));
-                    //counts.push_back(count);
-
                     before_ends.push_back(Point(i, j));
                     ends_counts.push_back(count);
 
@@ -1056,11 +1079,14 @@ public:
     }
 
     // a sum up function to extract RAGVG
-    Mat RAGVGExtraction(Mat skeleton, vector<Point> &ends_of_skeleton, vector<MyNode> &nodes_of_skeleton, vector<EndToNodeChain *> &end_to_node_chain, vector<NodeToNodeChain *> &node_to_node_chain, Mat &connection_mat)
+    Mat RAGVGExtraction(Mat skeleton, vector<Point> &ends_of_skeleton, vector<MyNode> &nodes_of_skeleton,
+                        vector<EndToNodeChain *> &end_to_node_chain, vector<NodeToNodeChain *> &node_to_node_chain, Mat &connection_mat, 
+                        std::vector<geometry_msgs::PointStamped> &output_nodes, int rows, int sliding_window_width, int interp_width)
     {
         nodes_of_skeleton.clear();
         ends_of_skeleton.clear();
-
+        geometry_msgs::PointStamped p;
+        std::cout<<"rows value::"<<rows<<"\n";
         if(!end_to_node_chain.empty())
         {
             for(int i = 0; i<end_to_node_chain.size(); i++)
@@ -1090,18 +1116,42 @@ public:
         Mat result = Mat(map.size(), CV_8UC3);
         cvtColor(map, result, COLOR_GRAY2RGB);
 
-        // draw node_to_node chain
+        int count = 0;
+       
         for (vector<NodeToNodeChain *>::iterator it = node_to_node_chain.begin(); it != node_to_node_chain.end(); it++)
         {
             NodeToNodeChain * chain = (*it);
-            chain->draw(result, result, Scalar(255, 0 , 0));
+                
+            for (auto k:chain->m_Node1.points)
+            {
+                p.point.y = rows - (int)k.x;
+                p.point.x = (int)k.y;
+                int flag = 0;
+                for (auto i:output_nodes)
+                {
+                    if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
+                    {    
+                        flag = 1;
+                    }
+                    
+                }
+                if (flag ==0)
+                {    
+                    if(p.point.x<=mask_x_lb || p.point.x>=mask_x_ub)
+                    {
+                        continue;
+                    }
+                    output_nodes.push_back(p);
+                }
+            }
+            chain->draw(result, result, Scalar(255, 0 , 0), output_nodes, rows);
         }
-
+        
         // draw end_to_node chain
         for (vector<EndToNodeChain *>::iterator it = end_to_node_chain.begin(); it != end_to_node_chain.end(); it++)
         {
             EndToNodeChain * chain = (*it);
-            // chain->draw(result, result, Scalar(0, 255 , 0));
+            chain->draw(result, result, Scalar(0, 255 , 0), output_nodes, rows);
         }
 
         // draw nodes
@@ -1109,6 +1159,26 @@ public:
         {
             Point node = it->centerPoint();
             // cout<<"nodes of skeleton::"<<nodes_of_skeleton.at(it).point.x<<" "<<nodes_of_skeleton.at(it).point.y<<"\n";
+                p.point.y = rows - (int)node.x;
+                p.point.x = (int)node.y;
+                int flag = 0;
+                for (auto i:output_nodes)
+                {
+                    if ((abs(i.point.x-p.point.x)<=sliding_window_width) &&(abs(i.point.y-p.point.y)<=sliding_window_width))
+                    {    
+                        flag = 1;
+                    }
+                    
+                }
+                if (flag ==0)
+                {    
+                    // Removing points which are not traversable
+                    if(p.point.x <= mask_x_lb || p.point.x >= mask_x_ub)
+                    {
+                        continue;
+                    }
+                    output_nodes.push_back(p);
+                }
             circle(result, Point(node.y, node.x), 3, Scalar(0, 255 , 255), 1, 8);
         }
 
@@ -1119,15 +1189,9 @@ public:
             // cout<<"nodes of skeleton:::"<<ends_of_skeleton.at(it).point.x<<" "<<nodes_of_skeleton.at(it).point.y<<"\n";
             circle(result, Point(end.y, end.x), 3, Scalar(255, 0 , 255), 1, 8);
         }
-        // for (auto e : ends_of_skeleton)
-        // {
-        //     cout<<"nodes of end of skeleton::"<<e.x<<" "<<e.y<<"\n";
-        // }
-        //  for (auto n : nodes_of_skeleton)
-        // {
-        //     // Point node = n;
-        //     cout<<"nodes of end of skeleton::"<<n.x<<" "<<n.y<<"\n";
-        // }
+        
+        std::cout<<"exited node to node for loop:::"<<output_nodes.size()<<"\n";
+        
 
         return result;
     }

@@ -1,5 +1,6 @@
 #include <Exploration.h>
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include "robosar_messages/taskgen_getwaypts.h"
 #include <algorithm> 
 #include "std_msgs/String.h"
@@ -12,8 +13,10 @@
 #include <math.h>
 #include <ros/package.h>
 
+
 std::string output_dir = ros::package::getPath("robosar_ragvg");
 using namespace std;
+ros::Publisher rviz_viz_pub;
 
 string out_dir = output_dir + "/output/";
 
@@ -181,7 +184,20 @@ void OutputEndsOfSkeleton(vector<Point> ends_of_skeleton, vector<geometry_msgs::
         }
         return false;
     }
-
+    void publishRviz(vector<geometry_msgs::PointStamped> output_nodes)
+    {
+        visualization_msgs::Marker marker;
+        visualization_msgs::MarkerArray markers;
+        // Publish over topic
+        int it=0;
+        for (auto o:output_nodes)
+        {
+            marker.pose.position.x = o.point.x;
+            marker.pose.position.y = o.point.y;
+            markers.markers.push_back(marker);
+        }
+        rviz_viz_pub.publish(markers);
+    }
    
 };
 
@@ -235,6 +251,7 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     geometry_msgs::PointStamped p;
     std::vector<long int> waypts;
     int i = 0;
+    
     for (auto o:exp.output_nodes)
     {    
 
@@ -248,9 +265,12 @@ bool pubtasks(robosar_messages::taskgen_getwaypts::Request  &req, robosar_messag
     res.num_pts = waypts.size();
     cout << "Num waypts = " << res.num_pts << endl;
     res.dims= 2;
+    exp.publishRviz(exp.output_nodes);
     return true;
     
 }
+
+
 
 int main(int argc, char** argv)
 {
@@ -258,6 +278,7 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     // Exploration exp;
     ros::ServiceServer sh;
+    rviz_viz_pub = nh.advertise<visualization_msgs::MarkerArray>("robosar_task_generator/task_visualisation", 1000);
     sh = nh.advertiseService("taskgen_getwaypts", pubtasks);
     ros::spin();
     return 0;
